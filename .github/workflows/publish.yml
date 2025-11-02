@@ -2,14 +2,16 @@ name: Build and publish to GHCR
 on:
     push:
         branches: ["main", "master"]
+
 permissions:
     contents: read
     packages: write
+
 jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-            - name: checkout
+            - name: Checkout repository
               uses: actions/checkout@v4
 
             - name: Set up QEMU
@@ -25,11 +27,15 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Build and push
+            # 🔽 Convertimos el nombre del owner a minúsculas
+            - name: Set lowercase repository owner
+              run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+            - name: Build and push image
               uses: docker/build-push-action@v4
               with:
                   context: .
                   push: true
                   tags: |
-                      ghcr.io/${{ github.repository_owner }}/mcp-agent:latest
-                      ghcr.io/${{ github.repository_owner }}/mcp-agent:${{ github.sha }}
+                      ghcr.io/${{ env.OWNER_LC }}/mcp-agent:latest
+                      ghcr.io/${{ env.OWNER_LC }}/mcp-agent:${{ github.sha }}
